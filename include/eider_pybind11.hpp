@@ -30,6 +30,9 @@ struct LocalObjectBase {
     py::object _lref;
     int _nref;
 
+    virtual ~LocalObjectBase() {
+    }
+
     // This "delayed constructor" is necessary because the vptr must be set up
     // before we can call py::cast(this).
     void init(py::object lsession, py::object loid) {
@@ -69,7 +72,7 @@ struct LocalRoot : LocalObjectBase {
         _nref = 1;
     }
 
-    virtual void _close() {
+    void _close() override {
         _lsession.attr("destroy")();
     }
 };
@@ -86,6 +89,8 @@ struct LocalObject : LocalObjectBase {
 inline void bind(py::handle m) {
     py::class_<LocalObjectBase>(m, "LocalObjectBase")
         .def("release", &LocalObjectBase::release)
+        .def("_release", &LocalObjectBase::_release)
+        .def("_close", &LocalObjectBase::_close)
         .def("_marshal", &LocalObjectBase::_marshal);
     py::class_<LocalRoot, LocalObjectBase>(m, "LocalRoot");
     py::class_<LocalObject, LocalObjectBase>(m, "LocalObject");
