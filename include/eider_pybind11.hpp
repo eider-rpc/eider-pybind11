@@ -80,7 +80,7 @@ struct LocalRoot : LocalObjectBase {
 
 struct LocalObject : LocalObjectBase {
     void init(py::object lsession) {
-        LocalObjectBase::init(lsession, lsession.attr("add")(py::cast(this)));
+        LocalObjectBase::init(lsession, lsession.attr("add")(*this));
         _nref = 0;
     }
 };
