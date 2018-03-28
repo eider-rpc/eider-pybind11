@@ -4,38 +4,40 @@ namespace eider = eider_pybind11;
 namespace py = eider::py;
 
 
-struct TestObject : eider::LocalObject {
-    TestObject(py::object lsession) {
+struct DuckTester : eider::LocalObject {
+    DuckTester(py::object lsession) {
         LocalObject::init(lsession);
     }
 
-    int add(int i, int j) {
-        return i + j;
+    bool is_it_a_duck(py::object obj) {
+        return std::string(py::str(obj["looks"])) == "like a duck" &&
+            std::string(py::str(obj["swims"])) == "like a duck" &&
+            std::string(py::str(obj["quacks"])) == "like a duck";
     }
 };
 
 
-struct TestRoot : eider::LocalRoot {
-    TestRoot(py::object lsession) {
+struct DuckTestFactory : eider::LocalRoot {
+    DuckTestFactory(py::object lsession) {
         LocalRoot::init(lsession);
     }
 
-    py::object new_TestObject() {
-        return py::cast(new TestObject(_lsession));
+    py::object new_DuckTester() {
+        return py::cast(new DuckTester(_lsession));
     }
 };
 
 
 PYBIND11_MODULE(eider_pybind11_test, m) {
     eider::bind(m);
-    
-    py::class_<TestObject, eider::LocalObject>(m, "TestObject")
-        .def(py::init<py::object>())
-        .def("add", &TestObject::add);
 
-    py::class_<TestRoot, eider::LocalRoot>(m, "TestRoot")
+    py::class_<DuckTester, eider::LocalObject>(m, "DuckTester")
         .def(py::init<py::object>())
-        .def("new_TestObject", &TestRoot::new_TestObject);
+        .def("is_it_a_duck", &DuckTester::is_it_a_duck);
+
+    py::class_<DuckTestFactory, eider::LocalRoot>(m, "DuckTestFactory")
+        .def(py::init<py::object>())
+        .def("new_DuckTester", &DuckTestFactory::new_DuckTester);
 
 #ifdef VERSION_INFO
     m.attr("__version__") = VERSION_INFO;
