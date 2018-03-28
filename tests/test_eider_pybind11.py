@@ -7,9 +7,6 @@ import eider
 from eider_pybind11_test import DuckTester, DuckTestFactory
 
 
-PORT = 12345
-URL = 'ws://localhost:{}/'.format(PORT)
-
 DHOW = 'like a duck'
 DUCK = {'looks': DHOW, 'swims': DHOW, 'quacks': DHOW}
 
