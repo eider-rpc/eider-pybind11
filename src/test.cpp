@@ -22,8 +22,8 @@ struct DuckTestFactory : eider::LocalRoot {
         LocalRoot::init(lsession);
     }
 
-    py::object new_DuckTester() {
-        return py::cast(new DuckTester(_lsession));
+    DuckTester *new_DuckTester() {
+        return new DuckTester(_lsession);
     }
 };
 
