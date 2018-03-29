@@ -1,5 +1,7 @@
 # eider-pybind11
 
+[![Build Status](https://travis-ci.org/eider-rpc/eider-pybind11.svg?branch=master)](https://travis-ci.org/eider-rpc/eider-pybind11)
+
 This is a reimplementation in C++ of those parts of
 [eider-py](https://github.com/eider-rpc/eider-py) necessary to create
 [pybind11](https://github.com/pybind/pybind11)-based extension modules
