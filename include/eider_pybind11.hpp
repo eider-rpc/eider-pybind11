@@ -30,15 +30,19 @@ struct LocalObjectBase {
     py::object _lref;
     int _nref;
 
-    virtual ~LocalObjectBase() {
+    // We must break the constructor into two stages because the vptr must be
+    // set up before we can call py::cast(this).
+    LocalObjectBase(py::object lsession, int nref) :
+        _lsession{lsession}, _nref{nref}
+    {
     }
 
-    // This "delayed constructor" is necessary because the vptr must be set up
-    // before we can call py::cast(this).
-    void init(py::object lsession, py::object loid) {
-        _lsession = lsession;
+    void init(py::object loid) {
         _loid = loid;
-        _lref = py::dict("__*__"_a=loid, "lsid"_a=lsession.attr("lsid"));
+        _lref = py::dict("__*__"_a=loid, "lsid"_a=_lsession.attr("lsid"));
+    }
+
+    virtual ~LocalObjectBase() {
     }
 
     void release() {
@@ -57,6 +61,10 @@ struct LocalObjectBase {
     }
 
     virtual void _close() {
+        // Break the reference cycle between self and _lsession.  This must be
+        // done to avoid memory leaks, because Python's garbage collector can't
+        // handle cycles involving extension types.
+        _lsession = py::none();
     }
 
     py::object _marshal() {
@@ -67,25 +75,71 @@ struct LocalObjectBase {
 
 
 struct LocalRoot : LocalObjectBase {
-    void init(py::object lsession) {
-        LocalObjectBase::init(lsession, py::none());
-        _nref = 1;
+    LocalRoot(py::object lsession) :
+        LocalObjectBase{lsession, 1}
+    {
+        LocalObjectBase::init(py::none());
+    }
+
+    void init() {
+        // This exists merely to allow the LocalSession magic to work.
+        // All initialization is performed in the constructor.
     }
 
     void _close() override {
         _lsession.attr("destroy")();
+        LocalObjectBase::_close();
     }
 };
 
 
 struct LocalObject : LocalObjectBase {
-    void init(py::object lsession) {
-        LocalObjectBase::init(lsession, lsession.attr("add")(*this));
-        _nref = 0;
+    LocalObject(py::object lsession) :
+        LocalObjectBase{lsession, 0}
+    {
+    }
+
+    py::object init() {
+        // If my pybind11 wrapper has not yet been created (e.g. I've just been
+        // new'd in C++), force the wrapper to take ownership of me, to avoid
+        // memory leaks.
+        py::object obj = py::cast(
+            this, py::return_value_policy::take_ownership);
+
+        // Add me to the local session object lookup table, and store my ID.
+        LocalObjectBase::init(_lsession.attr("add")(obj));
+
+        // Return the wrapping python object, so the caller doesn't have to
+        // cast me again.
+        return obj;
     }
 };
 
 
+struct LocalSession {
+    // Placeholder type that allows client code to magically bind the
+    // two-stage LocalObject constructor with:
+    //      .def(py::init<eider::LocalSession>())
+    // This relies on implementation details of pybind11 2.2.
+
+    template <typename Class, typename value_and_holder, typename... Args>
+    static void init_object(value_and_holder &v_h,
+                            py::object lsession,
+                            Args... args) {
+        // First stage: construct the C++ type.
+        Class *p = new Class(lsession, std::forward<Args>(args)...);
+
+        // Set up the pybind11 wrapper.  
+        v_h.value_ptr() = p;
+        v_h.type->init_instance(v_h.inst, nullptr);
+
+        // Second stage: add the object to the session.
+        p->init();
+    }
+};
+
+
+// Call this inside the PYBIND11_MODULE block to expose the Eider base classes.
 inline void bind(py::handle m) {
     py::class_<LocalObjectBase>(m, "LocalObjectBase")
         .def("release", &LocalObjectBase::release)
@@ -97,3 +151,25 @@ inline void bind(py::handle m) {
 }
 
 } // namespace eider_pybind11
+
+
+// Inject partial template specializations into pybind11 to make the
+// LocalSession magic work.
+namespace pybind11 { namespace detail { namespace initimpl {
+
+template <typename... Args>
+struct constructor<eider_pybind11::LocalSession, Args...> {
+    template <typename Class, typename... Extra>
+    static void execute(Class &cl, const Extra&... extra) {
+        cl.def(
+            "__init__",
+            eider_pybind11::LocalSession::init_object<
+                Cpp<Class>,
+                value_and_holder,
+                Args...>,
+            is_new_style_constructor(),
+            extra...);
+    }
+};
+
+}}} // namespace pybind11::detail::initimpl

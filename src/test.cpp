@@ -5,9 +5,7 @@ namespace py = eider::py;
 
 
 struct DuckTester : eider::LocalObject {
-    DuckTester(py::object lsession) {
-        LocalObject::init(lsession);
-    }
+    using eider::LocalObject::LocalObject;
 
     bool is_it_a_duck(py::object obj) {
         return std::string(py::str(obj["looks"])) == "like a duck" &&
@@ -18,12 +16,10 @@ struct DuckTester : eider::LocalObject {
 
 
 struct DuckTestFactory : eider::LocalRoot {
-    DuckTestFactory(py::object lsession) {
-        LocalRoot::init(lsession);
-    }
+    using eider::LocalRoot::LocalRoot;
 
-    DuckTester *new_DuckTester() {
-        return new DuckTester(_lsession);
+    py::object new_DuckTester() {
+        return (new DuckTester(_lsession))->init();
     }
 };
 
@@ -32,11 +28,11 @@ PYBIND11_MODULE(eider_pybind11_test, m) {
     eider::bind(m);
 
     py::class_<DuckTester, eider::LocalObject>(m, "DuckTester")
-        .def(py::init<py::object>())
+        .def(py::init<eider::LocalSession>())
         .def("is_it_a_duck", &DuckTester::is_it_a_duck);
 
     py::class_<DuckTestFactory, eider::LocalRoot>(m, "DuckTestFactory")
-        .def(py::init<py::object>())
+        .def(py::init<eider::LocalSession>())
         .def("new_DuckTester", &DuckTestFactory::new_DuckTester);
 
 #ifdef VERSION_INFO
