@@ -15,11 +15,15 @@ static void bind_api(py::handle m) {
         .def(py::init<>())
         .def("get", [](api::Counter &c) { return c._n; });
 
+    // Needed to demonstrate automatic direct property access.
+    py::class_<api::Species>(m, "Species")
+        .def_readwrite("how", &api::Species::how);
+
     // None of the tests use the other plain API classes directly; however, we
     // need the "forward declaration" of api::Animal in order for pybind11 to
     // properly typecheck and downcast the argument to Ecosystem::duck_test().
-    py::class_<api::Animal>(m, "RawAnimal");
-    py::class_<api::Plant>(m, "RawPlant");
+    py::class_<api::Animal, api::Species>(m, "RawAnimal");
+    py::class_<api::Plant, api::Species>(m, "RawPlant");
     py::class_<api::Ecosystem>(m, "RawEcosystem");
 }
 

@@ -17,11 +17,11 @@ struct Counter {
 
 
 struct Species {
-    std::string _how;  // description of how this thing behaves
+    std::string how;  // description of how this thing behaves
     std::shared_ptr<Counter> _nspecies;  // global instance counter
 
-    Species(std::string how, std::shared_ptr<Counter> nspecies) :
-        _how{how}, _nspecies{nspecies}
+    Species(std::string how_, std::shared_ptr<Counter> nspecies) :
+        how{how_}, _nspecies{nspecies}
     {
         ++nspecies->_n;
     }
@@ -36,15 +36,15 @@ struct Animal : Species {
     using Species::Species;
 
     std::string look() {
-        return _how;
+        return how;
     }
 
     std::string swim() {
-        return _how;
+        return how;
     }
 
     std::string quack() {
-        return _how;
+        return how;
     }
 };
 
@@ -53,7 +53,7 @@ struct Plant : Species {
     using Species::Species;
 
     std::string grow() {
-        return _how;
+        return how;
     }
 };
 

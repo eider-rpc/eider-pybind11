@@ -85,6 +85,11 @@ def do_the_tests(port, root, Exc):
                         assert False, "that's an odd duck"
                 assert env.biodiversity() == 1
 
+                # Test automatic direct property access.
+                assert duck.how() == DHOW
+                duck.how = GHOW
+                assert env.duck_test(duck, GHOW)
+
             assert env.biodiversity() == 0
 
 
