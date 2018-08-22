@@ -19,5 +19,5 @@ run it:
 python3 -m venv venv
 venv/bin/pip install -e .
 venv/bin/pip install pytest
-venv/bin/py.test
+venv/bin/pytest
 ```
