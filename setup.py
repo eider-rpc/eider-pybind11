@@ -105,8 +105,8 @@ setup(
     long_description='',
     ext_modules=ext_modules,
     install_requires=[
-        'aiohttp>=1',
-        'eider>=0.12',
+        'aiohttp>=2.3',
+        'eider>=0.13',
         'pybind11>=2.2'
     ],
     cmdclass={'build_ext': BuildExt},
