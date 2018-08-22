@@ -5,6 +5,8 @@ python:
     - 3.6
     - 3.7-dev
 install:
+    # yarl 1.2 drops Python 3.4 support
+    - pip install "yarl>=1.1,<1.2"
     - pip install .
     - pip install flake8
 script:
