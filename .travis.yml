@@ -3,7 +3,8 @@ python:
     - 3.4
     - 3.5
     - 3.6
-    - 3.7-dev
+    - 3.7
+    - 3.8-dev
 install:
     # yarl 1.2 drops Python 3.4 support
     - pip install "yarl>=1.1,<1.2"
