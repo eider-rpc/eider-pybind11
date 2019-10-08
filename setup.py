@@ -5,7 +5,7 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
-__version__ = '0.13.0'
+__version__ = '1.0.0'
 
 
 class get_pybind_include(object):
@@ -106,7 +106,7 @@ setup(
     ext_modules=ext_modules,
     install_requires=[
         'aiohttp>=2.3',
-        'eider>=0.13',
+        'eider>=1.0',
         'pybind11>=2.2'
     ],
     cmdclass={'build_ext': BuildExt},
