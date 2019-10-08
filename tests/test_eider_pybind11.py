@@ -4,7 +4,7 @@ from threading import Thread
 
 import eider
 
-from pytest import raises
+from pytest import fail, raises
 
 from eider_pybind11_test import Animal, Counter, Plant, Ecosystem
 
@@ -79,8 +79,9 @@ def do_the_tests(port, root, Exc):
                 # Trees aren't even animals.
                 with env.new_Plant(THOW) as tree:
                     assert env.biodiversity() == 2
-                    with raises(Exc, message="that's an odd duck"):
+                    with raises(Exc):
                         env.duck_test(tree, DHOW)
+                        fail("that's an odd duck")
                 assert env.biodiversity() == 1
 
                 # Test automatic direct property access.
